@@ -108,9 +108,21 @@ class IdeaPicker:
             
             for i in range(0, len(ideas), max_compare_together):
                 ideas_subset = ideas[i:i+max_compare_together]
-                best = self._pick_one_with_retry(ideas_subset)
-                scores[best] += 1
-                winners.append(best)
+                best = None
+                if len(ideas_subset) == 1:
+                    logging.info(f"only one idea left in this group, automatically advancing: {ideas_subset[0]}")
+                    best = ideas_subset[0]
+                else:
+                    # normal flow
+                    best = self._pick_one_with_retry(ideas_subset)
+                if best is None:
+                    logging.info(f"could not pick a winner from {ideas_subset}")
+                    continue
+                try:
+                    scores[best] += 1
+                    winners.append(best)
+                except KeyError:
+                    logging.warning(f"winner {best} not in scores, skipping")
             
             ideas = winners
             round_number += 1
